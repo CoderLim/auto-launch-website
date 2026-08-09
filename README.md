@@ -47,6 +47,8 @@ auto-launch-website launch --config site.config.json --dry-run
 auto-launch-website status --config site.config.json
 ```
 
+`newsite` defaults to the `git@github.com:shipany-ai/shipany-tanstack.git` template. When `repository.name` is omitted, it is derived from `site.name` (for example, `Bills Must Be Paid` becomes `bills-must-be-paid`). After creating or finding the GitHub repository, the command clones it to `~/Projects/<repository.name>`.
+
 ## Required credentials
 
 See `.env.example`. Use least-privilege tokens. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone, DNS, Rules, SSL settings and Email Routing permissions.

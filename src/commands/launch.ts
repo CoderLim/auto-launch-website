@@ -10,7 +10,7 @@ const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 export async function launch(config:SiteConfig, opts:{dryRun?:boolean}={}){
   if(config.registrar.provider==='spaceship') throw new AppError('Spaceship registrar adapter is not implemented in MVP; use Namecheap or add an adapter.','UNSUPPORTED_PROVIDER');
   const stateStore=new StateStore(); const state=await stateStore.load(config.domain);
-  const step=async(name:string,fn:()=>Promise<unknown>)=>{if(state.steps[name]?.ok)return state.steps[name].detail;if(opts.dryRun){console.log(`[dry-run] ${name}`);return;}const detail=await fn();await stateStore.mark(state,name,detail);return detail;};
+  const step=async(name:string,fn:()=>Promise<unknown>)=>{const completed=state.steps[name];if(completed?.ok)return completed.detail;if(opts.dryRun){console.log(`[dry-run] ${name}`);return;}const detail=await fn();await stateStore.mark(state,name,detail);return detail;};
   await step('prelaunch-audit',async()=>{await run(config.audit?.launchAuditCommand||''); await run(config.audit?.buildCommand||'npm run build'); return {ok:true};});
   const cf=new CloudflareProvider();
   const zone=await step('cloudflare-zone',()=>cf.findOrCreateZone(config.domain)) as {id:string;name_servers:string[]}|undefined;

@@ -6,14 +6,13 @@
   },
   "repository": {
     "owner": "CoderLim",
-    "name": "billsmustbepaid",
     "visibility": "public",
-    "template": "CoderLim/seo-site-template"
+    "template": "git@github.com:shipany-ai/shipany-tanstack.git"
   },
   "hosting": {
     "provider": "cloudflare",
     "type": "pages",
-    "projectName": "billsmustbepaid",
+    "projectName": "bills-must-be-paid",
     "productionBranch": "main",
     "setupCommand": "npx wrangler pages project create \"$AUTO_LAUNCH_PROJECT\" --production-branch main || true",
     "deployCommand": "npx wrangler pages deploy dist --project-name \"$AUTO_LAUNCH_PROJECT\"",
