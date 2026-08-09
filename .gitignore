@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.auto-launch-state.json
+.env
+.env.*
+!.env.example
+.DS_Store

@@ -1,0 +1,46 @@
+{
+  "domain": "billsmustbepaid.net",
+  "site": {
+    "name": "Bills Must Be Paid",
+    "canonicalUrl": "https://billsmustbepaid.net"
+  },
+  "repository": {
+    "owner": "CoderLim",
+    "name": "billsmustbepaid",
+    "visibility": "public",
+    "template": "CoderLim/seo-site-template"
+  },
+  "hosting": {
+    "provider": "cloudflare",
+    "type": "pages",
+    "projectName": "billsmustbepaid",
+    "productionBranch": "main",
+    "setupCommand": "npx wrangler pages project create \"$AUTO_LAUNCH_PROJECT\" --production-branch main || true",
+    "deployCommand": "npx wrangler pages deploy dist --project-name \"$AUTO_LAUNCH_PROJECT\"",
+    "customDomainCommand": "echo \"Configure this for your template/hosting strategy\""
+  },
+  "registrar": {
+    "provider": "namecheap"
+  },
+  "cloudflare": {
+    "alwaysHttps": true,
+    "redirectWwwToApex": true
+  },
+  "email": {
+    "enabled": true,
+    "aliases": ["support"],
+    "destinationEnv": "SUPPORT_EMAIL_DESTINATION"
+  },
+  "analytics": {
+    "ga4": true,
+    "injectCommand": "node scripts/set-ga-id.mjs \"$AUTO_LAUNCH_GA_ID\""
+  },
+  "search": {
+    "gsc": true,
+    "sitemapPath": "/sitemap.xml"
+  },
+  "audit": {
+    "buildCommand": "npm run build",
+    "launchAuditCommand": ""
+  }
+}
