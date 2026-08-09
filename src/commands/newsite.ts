@@ -7,13 +7,28 @@ import { execFile, spawn } from 'node:child_process';
 import { AppError } from '../utils/errors.js';
 
 type CloneRepository = (remote: string, destination: string) => Promise<void>;
-type NewsiteOptions = { projectsRoot?: string; clone?: CloneRepository };
+type PublishRepository = (localPath: string, origin: string) => Promise<void>;
+type NewsiteOptions = { projectsRoot?: string; clone?: CloneRepository; publish?: PublishRepository };
 
 const cloneRepository: CloneRepository = (remote, destination) => new Promise((resolve, reject) => {
   const child = spawn('git', ['clone', '--', remote, destination], {shell:false,stdio:'inherit'});
   child.on('exit', code => code === 0 ? resolve() : reject(new AppError(`git clone failed with exit code ${code}`, 'COMMAND_FAILED')));
   child.on('error', reject);
 });
+
+const publishRepository: PublishRepository = (localPath, origin) => new Promise((resolve, reject) => {
+  execFile('git', ['-C', localPath, 'remote', 'set-url', 'origin', origin], {encoding:'utf8'}, (setUrlError: Error|null) => {
+    if (setUrlError) return reject(setUrlError);
+    const child = spawn('git', ['-C', localPath, 'push', '-u', 'origin', 'HEAD'], {shell:false,stdio:'inherit'});
+    child.on('exit', code => code === 0 ? resolve() : reject(new AppError(`git push failed with exit code ${code}`, 'COMMAND_FAILED')));
+    child.on('error', reject);
+  });
+});
+
+export function toCloneUrl(source: string) {
+  if (/^(git@|https?:\/\/)/.test(source)) return source;
+  return `git@github.com:${source.replace(/\.git$/, '')}.git`;
+}
 
 async function exists(path: string) {
   try { await stat(path); return true; }
@@ -36,18 +51,26 @@ async function validateLocalGitRepository(path: string) {
 export async function newsite(config:SiteConfig, options:NewsiteOptions={}){
   const projectsRoot=options.projectsRoot ?? join(homedir(),'Projects');
   const localPath=join(projectsRoot,config.repository.name);
+  const origin=`git@github.com:${config.repository.owner}/${config.repository.name}.git`;
   await mkdir(projectsRoot,{recursive:true});
   const localExists=await exists(localPath);
   if(localExists) await validateLocalGitRepository(localPath);
 
   const gh=new GitHubProvider();
-  const remoteExists=await gh.repoExists(config.repository.owner,config.repository.name);
-  if(!remoteExists){
+  const remoteExisted=await gh.repoExists(config.repository.owner,config.repository.name);
+  if(!remoteExisted){
     if(!config.repository.template) throw new Error('repository.template is required to create a new repository');
-    await gh.createFromTemplate(config.repository.template,config.repository.owner,config.repository.name,config.repository.visibility==='private');
+    await gh.createRepository(config.repository.owner,config.repository.name,config.repository.visibility==='private');
   }
   if(!localExists) {
-    await (options.clone ?? cloneRepository)(`git@github.com:${config.repository.owner}/${config.repository.name}.git`,localPath);
+    const clone = options.clone ?? cloneRepository;
+    const publish = options.publish ?? publishRepository;
+    if(remoteExisted) {
+      await clone(origin, localPath);
+    } else {
+      await clone(toCloneUrl(config.repository.template!), localPath);
+      await publish(localPath, origin);
+    }
   }
-  return {status:remoteExists?'exists':'created',localPath};
+  return {status:remoteExisted?'exists':'created',localPath};
 }
