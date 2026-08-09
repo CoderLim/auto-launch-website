@@ -1,0 +1,18 @@
+{
+  "name": "auto-launch-website",
+  "version": "0.1.0",
+  "description": "Deterministic CLI for launching indie/SEO websites: GitHub, Cloudflare, DNS, Email Routing, GA4 and GSC.",
+  "type": "module",
+  "bin": {
+    "auto-launch-website": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
