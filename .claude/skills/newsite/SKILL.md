@@ -113,15 +113,15 @@ Write `$localPath/site.config.json` (overwrite if present) with this shape — s
   },
   "hosting": {
     "provider": "cloudflare",
-    "type": "pages",
+    "type": "workers",
     "projectName": "<repository.name>",
     "productionBranch": "main",
-    "setupCommand": "npx wrangler pages project create \"$AUTO_LAUNCH_PROJECT\" --production-branch main || true",
-    "deployCommand": "npx wrangler pages deploy dist --project-name \"$AUTO_LAUNCH_PROJECT\"",
-    "customDomainCommand": "echo \"Configure this for your template/hosting strategy\""
+    "setupCommand": "test -f wrangler.jsonc || cp wrangler.example.jsonc wrangler.jsonc",
+    "deployCommand": "pnpm cf:deploy",
+    "customDomainCommand": "npx wrangler domains add \"$AUTO_LAUNCH_DOMAIN\" || true"
   },
   "registrar": {
-    "provider": "namecheap"
+    "provider": "spaceship"
   },
   "cloudflare": {
     "alwaysHttps": true,
