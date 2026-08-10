@@ -116,9 +116,7 @@ Write `$localPath/site.config.json` (overwrite if present) with this shape — s
     "type": "workers",
     "projectName": "<repository.name>",
     "productionBranch": "main",
-    "setupCommand": "test -f wrangler.jsonc || cp wrangler.example.jsonc wrangler.jsonc",
-    "deployCommand": "pnpm cf:deploy",
-    "customDomainCommand": "npx wrangler domains add \"$AUTO_LAUNCH_DOMAIN\" || true"
+    "deployCommand": "pnpm cf:deploy"
   },
   "registrar": {
     "provider": "spaceship"
@@ -141,7 +139,7 @@ Write `$localPath/site.config.json` (overwrite if present) with this shape — s
     "sitemapPath": "/sitemap.xml"
   },
   "audit": {
-    "buildCommand": "npm run build",
+    "buildCommand": "pnpm build",
     "launchAuditCommand": ""
   }
 }
@@ -158,7 +156,10 @@ Field mapping:
 | `repository.name` / `hosting.projectName` | derived slug |
 | `repository.template` | source SSH URL (constant) |
 
-Note: the collected **邮箱** is for `/quick-start` (admin/support), not a field inside this JSON. Launch-time email routing still uses `SUPPORT_EMAIL_DESTINATION` from the environment.
+Notes:
+- Launch (`node dist/cli.js launch --config $localPath/site.config.json`) auto-creates D1, fills `wrangler.jsonc`, applies migrations, sets Worker secrets, attaches Workers custom domains, and upserts GA into D1. Do not rely on `wrangler domains add` (removed in Wrangler 4).
+- After writing `site.config.json`, also write `$localPath/scripts/set-ga-id.mjs` if missing (same small script as other ShipAny launch sites) so `analytics.injectCommand` works.
+- The collected **邮箱** is for `/quick-start` (admin/support), not a field inside this JSON. Launch-time email routing still uses `SUPPORT_EMAIL_DESTINATION` from the environment.
 
 ## Phase 6: Hand off to `/quick-start`
 

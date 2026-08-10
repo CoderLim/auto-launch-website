@@ -10,11 +10,11 @@ Implemented:
 - Pre-launch shell audit/build hook.
 - Create/reuse a Cloudflare Zone and wait until active.
 - Update registrar nameservers (Namecheap or Spaceship).
-- Enable Always Use HTTPS.
-- Create proxied `www` CNAME and a `www -> apex` Redirect Rule.
+- For Workers (`hosting.type=workers`): create D1, materialize `wrangler.jsonc` + `.env.production`, apply D1 migrations, deploy, set `AUTH_SECRET` / `CONFIG_ENCRYPTION_KEY`, attach Workers custom domains (apex + www).
+- Enable Always Use HTTPS and a `www -> apex` Redirect Rule (Pages also gets a proxied www CNAME).
 - Enable Cloudflare Email Routing and create aliases such as `support@domain`.
-- Deploy via template hooks (`setupCommand`, `deployCommand`, `customDomainCommand`); ShipAny uses `pnpm cf:deploy` (Workers).
-- Create GA4 property + web stream; inject via `analytics.injectCommand` (`AUTO_LAUNCH_GA_ID`) then redeploy.
+- Deploy via `hosting.deployCommand` (ShipAny: `pnpm cf:deploy`).
+- Create GA4 property + web stream; for Workers, upsert `google_analytics_id` into D1 config (optional `analytics.injectCommand` still runs).
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
 - Persist step state to `.auto-launch-state.json` for safe retries.
 - Production checks for apex HTTPS, www redirect, sitemap and robots.txt (DoH + curl, with retries for edge cert provisioning).
@@ -24,6 +24,7 @@ Not implemented in this MVP:
 
 - Purchasing domains.
 - YAML config. MVP uses JSON to avoid a runtime dependency.
+- ShipAny admin user seeding (still done in `/quick-start` / deploy skill when needed).
 
 ## Quick start
 
@@ -53,7 +54,7 @@ CLI `newsite` is the non-interactive / automation path (config file in, JSON out
 
 ## Required credentials
 
-See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). Use least-privilege tokens. Spaceship needs `domains:write`. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone, DNS, Rules, SSL settings and Email Routing permissions.
+See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). Use least-privilege tokens. Spaceship needs `domains:write`. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone/DNS/Email Routing plus Account Workers Scripts, D1, and Account Settings Read.
 
 ## Retry / idempotency
 
@@ -61,4 +62,4 @@ Each completed step is written to `.auto-launch-state.json`. Re-running `launch`
 
 ## Template contract
 
-For end-to-end automation, each standard site template should define working `hosting.deployCommand`, `hosting.customDomainCommand`, and `analytics.injectCommand` values. The CLI intentionally fails if these required actions are missing instead of reporting a false-success launch.
+For ShipAny Workers launches, set `hosting.type` to `workers` and `hosting.deployCommand` to `pnpm cf:deploy`. The CLI creates D1, fills `wrangler.jsonc`, applies migrations, attaches custom domains, and writes GA into D1 — you do not need a working `customDomainCommand`. Optional `setupCommand` / `analytics.injectCommand` still run when provided. Pages launches still rely on the shell hooks.

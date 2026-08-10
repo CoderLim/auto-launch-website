@@ -15,3 +15,25 @@ test('dry run does not require provider secrets', async () => {
   assert.equal(result.domain,'example.com');
   assert.deepEqual(result.steps,{});
 });
+
+test('workers dry run includes migrate/secrets and skips www-dns', async () => {
+  const logs = [];
+  const original = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+  try {
+    await launch({
+      domain:'workers.example', site:{name:'Workers Example',canonicalUrl:'https://workers.example'},
+      repository:{owner:'x',name:'workers-example'},
+      hosting:{provider:'cloudflare',type:'workers',projectName:'workers-example',deployCommand:'pnpm cf:deploy'},
+      registrar:{provider:'spaceship'}, cloudflare:{alwaysHttps:true,redirectWwwToApex:true},
+      email:{enabled:false}, analytics:{ga4:true}, search:{gsc:false}
+    }, {dryRun:true});
+  } finally {
+    console.log = original;
+  }
+  assert.ok(logs.includes('[dry-run] hosting-migrate'));
+  assert.ok(logs.includes('[dry-run] hosting-secrets'));
+  assert.ok(logs.includes('[dry-run] hosting-domain'));
+  assert.ok(!logs.includes('[dry-run] www-dns'));
+  assert.ok(!logs.includes('[dry-run] ga4-redeploy'));
+});

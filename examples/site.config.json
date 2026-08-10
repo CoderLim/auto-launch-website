@@ -6,6 +6,7 @@
   },
   "repository": {
     "owner": "CoderLim",
+    "name": "bills-must-be-paid",
     "visibility": "public",
     "template": "git@github.com:shipany-ai/shipany-tanstack.git"
   },
@@ -14,9 +15,7 @@
     "type": "workers",
     "projectName": "bills-must-be-paid",
     "productionBranch": "main",
-    "setupCommand": "test -f wrangler.jsonc || cp wrangler.example.jsonc wrangler.jsonc",
-    "deployCommand": "pnpm cf:deploy",
-    "customDomainCommand": "npx wrangler domains add \"$AUTO_LAUNCH_DOMAIN\" || true"
+    "deployCommand": "pnpm cf:deploy"
   },
   "registrar": {
     "provider": "spaceship"
@@ -39,7 +38,7 @@
     "sitemapPath": "/sitemap.xml"
   },
   "audit": {
-    "buildCommand": "npm run build",
+    "buildCommand": "pnpm build",
     "launchAuditCommand": ""
   }
 }
