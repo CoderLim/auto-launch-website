@@ -29,6 +29,10 @@ Not implemented in this MVP:
 
 ## Quick start
 
+**Interactive new site (recommended):** in Claude Code, run `/newsite` (see [`.claude/skills/newsite/SKILL.md`](.claude/skills/newsite/SKILL.md)). It uses AskUserQuestion for site name, domain, email (default `support@{domain}`), and feature description; creates the GitHub repo with `gh`; clones `shipany-tanstack` into `~/Projects/<repo>`; writes `site.config.json`; then hands off to the cloned project's `/quick-start` skill.
+
+**Launch automation (CLI):**
+
 ```bash
 cp examples/site.config.json site.config.json
 cp .env.example .env
@@ -47,7 +51,7 @@ auto-launch-website launch --config site.config.json --dry-run
 auto-launch-website status --config site.config.json
 ```
 
-`newsite` defaults to cloning `git@github.com:shipany-ai/shipany-tanstack.git` as a normal Git source (not a GitHub template). When `repository.name` is omitted, it is derived from `site.name` (for example, `Bills Must Be Paid` becomes `bills-must-be-paid`). For a new site it creates an empty GitHub repository, clones the source into `~/Projects/<repository.name>`, retargets `origin`, and pushes. If the GitHub repository already exists, it just clones that repository locally.
+CLI `newsite` is the non-interactive / automation path (config file in, JSON out). Prefer the `/newsite` skill for human-driven setup. The CLI defaults to cloning `git@github.com:shipany-ai/shipany-tanstack.git` as a normal Git source (not a GitHub template). When `repository.name` is omitted, it is derived from `site.name` (for example, `Bills Must Be Paid` becomes `bills-must-be-paid`). For a new site it creates an empty GitHub repository, clones the source into `~/Projects/<repository.name>`, retargets `origin`, and pushes. If the GitHub repository already exists, it just clones that repository locally.
 
 ## Required credentials
 
