@@ -12,7 +12,24 @@ export type PlausibleSiteResult = {
   trackerId: string | null;
 };
 
-/** Plausible Sites API — create/reuse a site and resolve its tracker script URL. */
+/** Shared script URL for self-hosted / custom Plausible (legacy mode). */
+export function defaultPlausibleScriptSrc(): string {
+  const explicit = process.env.PLAUSIBLE_SCRIPT_SRC?.trim();
+  if (explicit) return explicit;
+  const base = process.env.PLAUSIBLE_API_BASE?.trim().replace(/\/$/, '');
+  if (base) return `${base}/js/script.js`;
+  return 'https://plausible.io/js/script.js';
+}
+
+export function plausibleDashboardUrl(): string {
+  const dashboard = process.env.PLAUSIBLE_DASHBOARD_URL?.trim().replace(/\/$/, '');
+  if (dashboard) return dashboard;
+  const base = process.env.PLAUSIBLE_API_BASE?.trim().replace(/\/$/, '');
+  if (base && !base.includes('plausible.io')) return base;
+  return 'https://plausible.io';
+}
+
+/** Sites API — create/reuse a site and resolve its tracker script URL. */
 export class PlausibleProvider {
   private base() {
     return (process.env.PLAUSIBLE_API_BASE || 'https://plausible.io').replace(/\/$/, '');
@@ -28,7 +45,7 @@ export class PlausibleProvider {
   private toResult(site: PlausibleSite, fallbackDomain: string): PlausibleSiteResult {
     const domain = site.domain || fallbackDomain;
     const trackerId = site.tracker_script_configuration?.id?.trim() || null;
-    const scriptSrc = trackerId ? `${this.base()}/js/${trackerId}.js` : `${this.base()}/js/script.js`;
+    const scriptSrc = trackerId ? `${this.base()}/js/${trackerId}.js` : defaultPlausibleScriptSrc();
     return { domain, scriptSrc, trackerId };
   }
 
@@ -65,13 +82,12 @@ export class PlausibleProvider {
   }
 }
 
-/** Sites API when token is set; otherwise legacy cloud script (add the domain in Plausible UI). */
+/** Sites API when token is set; otherwise inject domain + shared script (self-hosted or cloud). */
 export async function provisionPlausibleSite(domain: string): Promise<PlausibleSiteResult & { mode: 'sites-api' | 'legacy' }> {
   if (!process.env.PLAUSIBLE_API_TOKEN?.trim()) {
-    const base = (process.env.PLAUSIBLE_API_BASE || 'https://plausible.io').replace(/\/$/, '');
     return {
       domain,
-      scriptSrc: `${base}/js/script.js`,
+      scriptSrc: defaultPlausibleScriptSrc(),
       trackerId: null,
       mode: 'legacy',
     };

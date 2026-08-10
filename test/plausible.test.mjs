@@ -71,11 +71,22 @@ test('Plausible findOrCreateSite creates a site when missing', async () => {
 
 test('provisionPlausibleSite falls back to legacy script without API token', async () => {
   delete process.env.PLAUSIBLE_API_TOKEN;
+  process.env.PLAUSIBLE_SCRIPT_SRC = 'https://app.pageview.app/js/script.js';
   delete process.env.PLAUSIBLE_API_BASE;
   const { provisionPlausibleSite } = await import('../dist/providers/plausible.js');
   const result = await provisionPlausibleSite('example.com');
   assert.equal(result.mode, 'legacy');
   assert.equal(result.domain, 'example.com');
-  assert.equal(result.scriptSrc, 'https://plausible.io/js/script.js');
+  assert.equal(result.scriptSrc, 'https://app.pageview.app/js/script.js');
   assert.equal(result.trackerId, null);
+  delete process.env.PLAUSIBLE_SCRIPT_SRC;
+});
+
+test('defaultPlausibleScriptSrc derives from PLAUSIBLE_API_BASE', async () => {
+  delete process.env.PLAUSIBLE_SCRIPT_SRC;
+  delete process.env.PLAUSIBLE_API_TOKEN;
+  process.env.PLAUSIBLE_API_BASE = 'https://analytics.example.com';
+  const { defaultPlausibleScriptSrc } = await import('../dist/providers/plausible.js');
+  assert.equal(defaultPlausibleScriptSrc(), 'https://analytics.example.com/js/script.js');
+  delete process.env.PLAUSIBLE_API_BASE;
 });

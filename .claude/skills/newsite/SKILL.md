@@ -159,7 +159,7 @@ Field mapping:
 
 Notes:
 - Launch (`node dist/cli.js launch --config $localPath/site.config.json`) auto-creates D1, fills `wrangler.jsonc`, applies migrations, sets Worker secrets, attaches Workers custom domains, and upserts GA + Plausible into D1. Do not rely on `wrangler domains add` (removed in Wrangler 4).
-- Plausible: without `PLAUSIBLE_API_TOKEN`, launch writes the legacy script to D1 and prints a **manual follow-up** at the end — add the domain in the Plausible dashboard after publish. With Enterprise Sites API token, provisioning is fully automatic.
+- Plausible: set `PLAUSIBLE_SCRIPT_SRC` (e.g. self-hosted `https://app.pageview.app/js/script.js`); launch writes `plausible_domain` + `plausible_src` to D1. Without Sites API token, add the domain in your Plausible dashboard after publish (reminder printed at end of launch).
 - After writing `site.config.json`, also write `$localPath/scripts/set-ga-id.mjs` if missing (same small script as other ShipAny launch sites) so `analytics.injectCommand` works.
 - The collected **邮箱** is for `/quick-start` (admin/support), not a field inside this JSON. Launch-time email routing still uses `SUPPORT_EMAIL_DESTINATION` from the environment.
 

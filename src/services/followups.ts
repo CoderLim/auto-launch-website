@@ -1,4 +1,5 @@
 import type { LaunchState, SiteConfig } from '../types.js';
+import { plausibleDashboardUrl } from '../providers/plausible.js';
 
 export type ManualFollowUp = {
   id: string;
@@ -19,11 +20,11 @@ export function collectManualFollowUps(config: SiteConfig, state: LaunchState): 
       items.push({
         id: 'plausible-site',
         title: 'Plausible — add site in dashboard',
-        url: 'https://plausible.io',
+        url: plausibleDashboardUrl(),
         steps: [
           `Sign in and add a site with domain: ${config.domain}`,
-          'Use the exact domain (no https://) — must match plausible_domain in your site config / D1',
-          'After adding, open the live site and confirm pageviews appear in Plausible within a few minutes',
+          'Use the exact domain (no https://) — launch already set data-domain via plausible_domain in D1',
+          'After adding, open the live site and confirm pageviews appear within a few minutes',
         ],
       });
     }
