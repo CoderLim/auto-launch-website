@@ -15,7 +15,7 @@ Implemented:
 - Enable Cloudflare Email Routing and create aliases such as `support@domain`.
 - Deploy via `hosting.deployCommand` (ShipAny: `pnpm cf:deploy`).
 - Create GA4 property + web stream; for Workers, upsert `google_analytics_id` into D1 config (optional `analytics.injectCommand` still runs).
-- Create/reuse a Plausible site via Sites API when `PLAUSIBLE_API_TOKEN` is set; otherwise inject the legacy script into D1 and print a post-launch reminder to add the site in the Plausible dashboard.
+- Plausible: set `PLAUSIBLE_SCRIPT_SRC` (shared self-hosted script); launch writes `plausible_domain` per site into D1. Optional Enterprise `PLAUSIBLE_API_TOKEN` auto-provisions via Sites API.
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
 - Persist step state to `.auto-launch-state.json` for safe retries.
 - Production checks for apex HTTPS, www redirect, sitemap and robots.txt (DoH + curl, with retries for edge cert provisioning).
@@ -55,7 +55,7 @@ CLI `newsite` is the non-interactive / automation path (config file in, JSON out
 
 ## Required credentials
 
-See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). Use least-privilege tokens. Spaceship needs `domains:write`. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone/DNS/Email Routing plus Account Workers Scripts, D1, and Account Settings Read. Plausible automation uses the [Sites API](https://plausible.io/docs/sites-api) (`PLAUSIBLE_API_TOKEN`, Enterprise plan) — not the Stats or Events APIs ([data access overview](https://plausible.io/docs/data-access)).
+See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). Use least-privilege tokens. Spaceship needs `domains:write`. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone/DNS/Email Routing plus Account Workers Scripts, D1, and Account Settings Read. Plausible: default self-hosted script via `PLAUSIBLE_SCRIPT_SRC` / `PLAUSIBLE_DASHBOARD_URL` in `.env`. Launch sets `plausible_domain` per site; add the domain in your Plausible dashboard after publish (reminder at end of launch). Optional Enterprise [Sites API](https://plausible.io/docs/sites-api) token for full auto-provisioning.
 
 ## Retry / idempotency
 
