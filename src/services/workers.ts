@@ -15,8 +15,9 @@ async function exists(path: string) {
 }
 
 function replaceJsoncField(text: string, key: string, value: string) {
-  const re = new RegExp(`("${key}"\\s*:\\s*")([^"]*)(")`);
-  if (re.test(text)) return text.replace(re, `$1${value}$3`);
+  const re = new RegExp(`("${key}"\\s*:\\s*")((?:\\\\.|[^"\\\\])*)(")`);
+  const escaped = JSON.stringify(value).slice(1,-1);
+  if (re.test(text)) return text.replace(re, (_match,prefix,_current,suffix) => `${prefix}${escaped}${suffix}`);
   return text;
 }
 

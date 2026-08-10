@@ -22,4 +22,5 @@ function validate(c: SiteConfig) {
   for (const key of ['owner','name'] as const) if (!c.repository?.[key]) throw new AppError(`repository.${key} is required`, 'INVALID_CONFIG');
   if(!/^[a-z0-9._-]+$/i.test(c.repository.name) || c.repository.name==='.' || c.repository.name==='..') throw new AppError('repository.name must be a single GitHub-compatible repository name','INVALID_CONFIG');
   if (!c.hosting?.projectName) throw new AppError('hosting.projectName is required', 'INVALID_CONFIG');
+  if(c.analytics?.plausible && c.hosting.type!=='workers') throw new AppError('Plausible automation requires Workers hosting with D1','INVALID_CONFIG');
 }

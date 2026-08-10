@@ -47,3 +47,11 @@ test('rejects a repository name that can escape the projects directory', async (
   await assert.rejects(() => loadConfig(path), /repository.name/);
   await rm(dir,{recursive:true,force:true});
 });
+
+test('rejects Plausible automation for Pages hosting', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'auto-launch-'));
+  const path = join(dir, 'site.config.json');
+  await writeFile(path, JSON.stringify({domain:'example.com',site:{name:'Example'},repository:{owner:'x',name:'example'},hosting:{provider:'cloudflare',type:'pages',projectName:'example'},registrar:{provider:'namecheap'},analytics:{plausible:true}}));
+  await assert.rejects(() => loadConfig(path), /Plausible automation requires Workers/);
+  await rm(dir,{recursive:true,force:true});
+});

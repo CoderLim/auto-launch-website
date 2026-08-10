@@ -31,7 +31,7 @@ Parse `$ARGUMENTS` and any prior user message for:
 For every missing required field, call **AskUserQuestion** (one field at a time, in this order):
 
 1. **网站名** — required. Prompt: `网站名是什么？`
-2. **域名** — required. Prompt: `域名是什么？（如 example.com）`  
+2. **域名** — required. Prompt: `域名是什么？（如 example.com）`
    Validate: matches `^[a-z0-9.-]+\.[a-z]{2,}$` (case-insensitive). Re-ask if invalid.
 3. **邮箱** — optional with default. Prompt: `邮箱？` with default / suggestion `support@{域名}`. If the user skips or accepts default, use `support@{域名}`.
 4. **功能描述** — required. Prompt: `功能描述是什么？（产品做什么、核心功能）`
@@ -70,8 +70,9 @@ If `$localPath` exists:
 
 1. It must be a Git repository: `git -C "$localPath" rev-parse --show-toplevel` succeeds.
 2. The toplevel realpath must equal the realpath of `$localPath` (reject nested / wrong roots).
+3. Read `git -C "$localPath" remote get-url origin`. Its canonical repository must equal either `$origin` or `$source`; reject missing or unrelated origins.
 
-On conflict: **stop**. Do not create a GitHub repo. Tell the user to remove or rename the path.
+On conflict: **stop before any GitHub mutation**. Tell the user to remove or rename the path.
 
 ## Phase 4: Create GitHub repo + clone (gh / git)
 
@@ -80,7 +81,7 @@ remote_existed=0
 if gh repo view "${owner}/${repository_name}" >/dev/null 2>&1; then
   remote_existed=1
 else
-  gh repo create "${owner}/${repository_name}" --public --confirm
+  gh repo create "${owner}/${repository_name}" --public
 fi
 ```
 
@@ -90,7 +91,14 @@ Then:
 |-----------------|---------------|--------|
 | yes | no | `git clone -- "$origin" "$localPath"` |
 | no | no | `git clone -- "$source" "$localPath"` then `git -C "$localPath" remote set-url origin "$origin"` then `git -C "$localPath" push -u origin HEAD` |
-| any | yes (valid) | Skip clone/push; reuse local path |
+| any | yes (valid origin/source) | Skip clone, then run the idempotent publish step below |
+
+For every existing valid local repository, always repair the destination remote and retry publication so an interrupted first push cannot be reported as complete:
+
+```bash
+git -C "$localPath" remote set-url origin "$origin"
+git -C "$localPath" push -u origin HEAD
+```
 
 Never use GitHub `--template` / generate-from-template APIs. The source is a normal Git repository.
 

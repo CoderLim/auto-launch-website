@@ -7,6 +7,7 @@ import { materializeWranglerConfig, ensureProductionEnv } from '../dist/services
 
 test('materializeWranglerConfig fills D1 id, account, and production URL', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'alw-wrangler-'));
+  const siteName = 'ACME "AI" \\ $& $1';
   await writeFile(
     join(dir, 'wrangler.example.jsonc'),
     `{
@@ -30,18 +31,28 @@ test('materializeWranglerConfig fills D1 id, account, and production URL', async
   await materializeWranglerConfig({
     projectDir: dir,
     workerName: 'demo-site',
-    siteName: 'Demo Site',
+    siteName,
+    domain: 'demo.example',
+    databaseName: 'demo-site-db',
+    databaseId: 'db-uuid-1',
+  });
+  await materializeWranglerConfig({
+    projectDir: dir,
+    workerName: 'demo-site',
+    siteName,
     domain: 'demo.example',
     databaseName: 'demo-site-db',
     databaseId: 'db-uuid-1',
   });
   const text = await readFile(join(dir, 'wrangler.jsonc'), 'utf8');
+  let parsed;
+  assert.doesNotThrow(() => { parsed = JSON.parse(text); }, 'generated wrangler.jsonc must stay parseable');
   assert.match(text, /"name": "demo-site"/);
   assert.match(text, /"account_id": "acct-123"/);
   assert.match(text, /"database_name": "demo-site-db"/);
   assert.match(text, /"database_id": "db-uuid-1"/);
   assert.match(text, /"VITE_APP_URL": "https:\/\/demo\.example"/);
-  assert.match(text, /"VITE_APP_NAME": "Demo Site"/);
+  assert.equal(parsed.vars.VITE_APP_NAME, siteName);
   assert.doesNotMatch(text, /"routes"/);
 });
 

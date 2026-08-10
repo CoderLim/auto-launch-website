@@ -31,7 +31,7 @@ set -a && source .env && set +a
 node dist/cli.js launch --config "<absolute-path-to-site.config.json>"
 ```
 
-- Idempotent: completed steps are skipped via `.auto-launch-state.json` in auto-launch-website cwd.
+- Idempotent per domain: completed steps are skipped via `.auto-launch-state/<domain>.json` in auto-launch-website cwd. A matching legacy `.auto-launch-state.json` is migrated on the next completed step.
 - On failure: read the error, fix the blocker, re-run (do not wipe state unless replaying a specific step).
 - Dry run first only when the user asks: `node dist/cli.js launch --config ... --dry-run`
 
@@ -61,4 +61,4 @@ Re-shows pending manual follow-ups and step state.
 ## Do not
 
 - Use this instead of `/newsite` for scaffolding a new repo.
-- Commit `.env` or `.auto-launch-state.json`.
+- Commit `.env`, `.auto-launch-state.json`, or `.auto-launch-state/`.

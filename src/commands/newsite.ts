@@ -48,13 +48,38 @@ async function validateLocalGitRepository(path: string) {
   if(await realpath(topLevel)!==await realpath(path)) throw new AppError(`Local path is inside a different Git repository: ${path}`,'LOCAL_PATH_CONFLICT');
 }
 
+function canonicalRemote(remote: string) {
+  const normalized=remote.trim()
+    .replace(/^git@github\.com:/,'github.com/')
+    .replace(/^https?:\/\/github\.com\//,'github.com/')
+    .replace(/\.git$/,'')
+    .replace(/\/$/,'');
+  return normalized.startsWith('github.com/') ? normalized.toLowerCase() : normalized;
+}
+
+async function getOrigin(path: string) {
+  return new Promise<string>((resolveOrigin,reject) => {
+    execFile('git',['-C',path,'config','--get','remote.origin.url'],{encoding:'utf8'},(error,stdout) => {
+      if(error || !stdout.trim()) reject(new AppError(`Local Git repository has no origin: ${path}`,'LOCAL_PATH_CONFLICT'));
+      else resolveOrigin(stdout.trim());
+    });
+  });
+}
+
 export async function newsite(config:SiteConfig, options:NewsiteOptions={}){
   const projectsRoot=options.projectsRoot ?? join(homedir(),'Projects');
   const localPath=join(projectsRoot,config.repository.name);
   const origin=`git@github.com:${config.repository.owner}/${config.repository.name}.git`;
   await mkdir(projectsRoot,{recursive:true});
   const localExists=await exists(localPath);
-  if(localExists) await validateLocalGitRepository(localPath);
+  if(localExists) {
+    await validateLocalGitRepository(localPath);
+    const currentOrigin=canonicalRemote(await getOrigin(localPath));
+    const allowedOrigins=[origin,config.repository.template && toCloneUrl(config.repository.template)]
+      .filter((value): value is string => !!value)
+      .map(canonicalRemote);
+    if(!allowedOrigins.includes(currentOrigin)) throw new AppError(`Local Git repository has unexpected origin: ${localPath}`,'LOCAL_PATH_CONFLICT');
+  }
 
   const gh=new GitHubProvider();
   const remoteExisted=await gh.repoExists(config.repository.owner,config.repository.name);
@@ -62,9 +87,11 @@ export async function newsite(config:SiteConfig, options:NewsiteOptions={}){
     if(!config.repository.template) throw new Error('repository.template is required to create a new repository');
     await gh.createRepository(config.repository.owner,config.repository.name,config.repository.visibility==='private');
   }
-  if(!localExists) {
-    const clone = options.clone ?? cloneRepository;
-    const publish = options.publish ?? publishRepository;
+  const clone = options.clone ?? cloneRepository;
+  const publish = options.publish ?? publishRepository;
+  if(localExists) {
+    await publish(localPath,origin);
+  } else {
     if(remoteExisted) {
       await clone(origin, localPath);
     } else {

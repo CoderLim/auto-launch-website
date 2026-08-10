@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .auto-launch-state.json
+.auto-launch-state/
 .env
 .env.*
 !.env.example

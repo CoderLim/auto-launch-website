@@ -94,7 +94,7 @@ test('seeds a new site by cloning the source repo into a fresh GitHub repository
   }
 });
 
-test('reuses an existing local Git repository without cloning it again', async () => {
+test('publishes an existing local Git repository to repair an interrupted push', async () => {
   const projectsRoot = await mkdtemp(join(tmpdir(), 'auto-launch-projects-'));
   const localPath = join(projectsRoot, 'bills-must-be-paid');
   const originalFetch = globalThis.fetch;
@@ -102,15 +102,73 @@ test('reuses an existing local Git repository without cloning it again', async (
   process.env.GITHUB_TOKEN = 'test-token';
   globalThis.fetch = async () => new Response('{}', {status:200});
   execFileSync('git', ['init', localPath], {stdio:'ignore'});
+  execFileSync('git', ['-C', localPath, 'remote', 'add', 'origin', 'https://github.com/coderlim/BILLS-MUST-BE-PAID.git']);
+  let published = false;
 
   try {
     const result = await newsite(config, {
       projectsRoot,
       clone: async () => assert.fail('clone must not run for an existing Git repository'),
-      publish: async () => assert.fail('publish must not run for an existing Git repository')
+      publish: async (path, origin) => {
+        published = true;
+        assert.equal(path, localPath);
+        assert.equal(origin, 'git@github.com:CoderLim/bills-must-be-paid.git');
+      }
     });
     assert.equal(result.status, 'exists');
     assert.equal(result.localPath, localPath);
+    assert.equal(published, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalToken === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = originalToken;
+    await rm(projectsRoot, {recursive:true,force:true});
+  }
+});
+
+test('rejects an existing Git repository with an unrelated origin before GitHub changes', async () => {
+  const projectsRoot = await mkdtemp(join(tmpdir(), 'auto-launch-projects-'));
+  const localPath = join(projectsRoot, 'bills-must-be-paid');
+  const originalFetch = globalThis.fetch;
+  const originalToken = process.env.GITHUB_TOKEN;
+  process.env.GITHUB_TOKEN = 'test-token';
+  let githubRequests = 0;
+  globalThis.fetch = async () => {
+    githubRequests += 1;
+    return new Response('{}', {status:200});
+  };
+  execFileSync('git', ['init', localPath], {stdio:'ignore'});
+  execFileSync('git', ['-C', localPath, 'remote', 'add', 'origin', 'git@github.com:someone-else/unrelated.git']);
+
+  try {
+    await assert.rejects(() => newsite(config, {projectsRoot}), /unexpected origin/);
+    assert.equal(githubRequests, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalToken === undefined) delete process.env.GITHUB_TOKEN;
+    else process.env.GITHUB_TOKEN = originalToken;
+    await rm(projectsRoot, {recursive:true,force:true});
+  }
+});
+
+test('publishes an existing source clone when the destination remote already exists', async () => {
+  const projectsRoot = await mkdtemp(join(tmpdir(), 'auto-launch-projects-'));
+  const localPath = join(projectsRoot, 'bills-must-be-paid');
+  const originalFetch = globalThis.fetch;
+  const originalToken = process.env.GITHUB_TOKEN;
+  process.env.GITHUB_TOKEN = 'test-token';
+  globalThis.fetch = async () => new Response('{}', {status:200});
+  execFileSync('git', ['init', localPath], {stdio:'ignore'});
+  execFileSync('git', ['-C', localPath, 'remote', 'add', 'origin', config.repository.template]);
+  let publishOrigin;
+
+  try {
+    await newsite(config, {
+      projectsRoot,
+      clone: async () => assert.fail('clone must not run for an existing source clone'),
+      publish: async (_path, origin) => { publishOrigin = origin; }
+    });
+    assert.equal(publishOrigin, 'git@github.com:CoderLim/bills-must-be-paid.git');
   } finally {
     globalThis.fetch = originalFetch;
     if (originalToken === undefined) delete process.env.GITHUB_TOKEN;

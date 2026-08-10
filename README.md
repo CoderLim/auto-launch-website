@@ -17,7 +17,7 @@ Implemented:
 - Create GA4 property + web stream; for Workers, upsert `google_analytics_id` into D1 config (optional `analytics.injectCommand` still runs).
 - Plausible: set `PLAUSIBLE_SCRIPT_SRC` (shared self-hosted script); launch writes `plausible_domain` per site into D1. Optional Enterprise `PLAUSIBLE_API_TOKEN` auto-provisions via Sites API.
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
-- Persist step state to `.auto-launch-state.json` for safe retries.
+- Persist step state to `.auto-launch-state/<domain>.json` for safe retries across multiple sites.
 - Production checks for apex HTTPS, www redirect, sitemap and robots.txt (DoH + curl, with retries for edge cert provisioning).
 - Dry run and status commands.
 
@@ -59,7 +59,7 @@ See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). U
 
 ## Retry / idempotency
 
-Each completed step is written to `.auto-launch-state.json`. Re-running `launch` skips completed steps. Remove only the specific step from the state file when you intentionally want to replay it.
+Each completed step is written to `.auto-launch-state/<domain>.json`. Re-running `launch` skips completed steps without overwriting another site's state. Existing matching `.auto-launch-state.json` files are read as a legacy fallback and migrate on the next completed step. Remove only the specific step from the domain state file when you intentionally want to replay it.
 
 ## Template contract
 
