@@ -114,7 +114,16 @@ export async function ensureWorkerSecrets(projectDir: string) {
   };
 }
 
+export async function ensureD1Migrations(projectDir: string) {
+  const drizzleDir = join(projectDir, 'drizzle');
+  if (!(await exists(drizzleDir))) {
+    // ShipAny gitignores drizzle/; generate from schema before first remote apply.
+    await run('pnpm db:generate', projectDir, { CI: 'true' });
+  }
+}
+
 export async function applyD1Migrations(projectDir: string, databaseName: string) {
+  await ensureD1Migrations(projectDir);
   await run(`npx wrangler d1 migrations apply "${databaseName}" --remote`, projectDir, { CI: 'true' });
   return { databaseName, applied: true };
 }
