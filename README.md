@@ -15,6 +15,7 @@ Implemented:
 - Enable Cloudflare Email Routing and create aliases such as `support@domain`.
 - Deploy via `hosting.deployCommand` (ShipAny: `pnpm cf:deploy`).
 - Create GA4 property + web stream; for Workers, upsert `google_analytics_id` into D1 config (optional `analytics.injectCommand` still runs).
+- Create/reuse a Plausible site via Sites API and upsert `plausible_domain` + `plausible_src` into D1 (Enterprise Sites API key required).
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
 - Persist step state to `.auto-launch-state.json` for safe retries.
 - Production checks for apex HTTPS, www redirect, sitemap and robots.txt (DoH + curl, with retries for edge cert provisioning).
@@ -54,7 +55,7 @@ CLI `newsite` is the non-interactive / automation path (config file in, JSON out
 
 ## Required credentials
 
-See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). Use least-privilege tokens. Spaceship needs `domains:write`. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone/DNS/Email Routing plus Account Workers Scripts, D1, and Account Settings Read.
+See `.env.example`. Copy to `.env` in this repo root (auto-loaded by the CLI). Use least-privilege tokens. Spaceship needs `domains:write`. The Google refresh token needs Analytics Admin, Search Console and Site Verification scopes. The Cloudflare token needs Zone/DNS/Email Routing plus Account Workers Scripts, D1, and Account Settings Read. Plausible automation uses the [Sites API](https://plausible.io/docs/sites-api) (`PLAUSIBLE_API_TOKEN`, Enterprise plan) — not the Stats or Events APIs ([data access overview](https://plausible.io/docs/data-access)).
 
 ## Retry / idempotency
 

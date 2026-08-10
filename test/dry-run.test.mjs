@@ -26,7 +26,7 @@ test('workers dry run includes migrate/secrets and skips www-dns', async () => {
       repository:{owner:'x',name:'workers-example'},
       hosting:{provider:'cloudflare',type:'workers',projectName:'workers-example',deployCommand:'pnpm cf:deploy'},
       registrar:{provider:'spaceship'}, cloudflare:{alwaysHttps:true,redirectWwwToApex:true},
-      email:{enabled:false}, analytics:{ga4:true}, search:{gsc:false}
+      email:{enabled:false}, analytics:{ga4:true, plausible:true}, search:{gsc:false}
     }, {dryRun:true});
   } finally {
     console.log = original;
@@ -34,6 +34,8 @@ test('workers dry run includes migrate/secrets and skips www-dns', async () => {
   assert.ok(logs.includes('[dry-run] hosting-migrate'));
   assert.ok(logs.includes('[dry-run] hosting-secrets'));
   assert.ok(logs.includes('[dry-run] hosting-domain'));
+  assert.ok(logs.includes('[dry-run] plausible'));
+  assert.ok(logs.includes('[dry-run] plausible-inject'));
   assert.ok(!logs.includes('[dry-run] www-dns'));
   assert.ok(!logs.includes('[dry-run] ga4-redeploy'));
 });

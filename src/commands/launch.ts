@@ -5,6 +5,7 @@ import { CloudflareProvider } from '../providers/cloudflare.js';
 import { NamecheapProvider } from '../providers/namecheap.js';
 import { SpaceshipProvider } from '../providers/spaceship.js';
 import { GoogleProvider } from '../providers/google.js';
+import { provisionPlausibleSite } from '../providers/plausible.js';
 import { requiredEnv, AppError } from '../utils/errors.js';
 import { productionAudit } from '../services/audit.js';
 import {
@@ -12,6 +13,7 @@ import {
   ensureWorkerSecrets,
   applyD1Migrations,
   upsertGa4Config,
+  upsertPlausibleConfig,
 } from '../services/workers.js';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -188,6 +190,23 @@ export async function launch(config: SiteConfig, opts: { dryRun?: boolean } = {}
         return { ok: true };
       });
     }
+  }
+
+  if (config.analytics?.plausible) {
+    const plausible = (await step('plausible', () => provisionPlausibleSite(config.domain))) as
+      | { domain: string; scriptSrc: string; trackerId: string | null; mode: 'sites-api' | 'legacy' }
+      | undefined;
+    await step('plausible-inject', async () => {
+      if (isWorkers) {
+        await upsertPlausibleConfig(
+          projectDir,
+          workersMeta?.databaseName || `${config.hosting.projectName}-db`,
+          plausible!.domain,
+          plausible!.scriptSrc,
+        );
+      }
+      return plausible;
+    });
   }
 
   if (config.search?.gsc) {

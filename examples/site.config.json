@@ -31,6 +31,7 @@
   },
   "analytics": {
     "ga4": true,
+    "plausible": true,
     "injectCommand": "node scripts/set-ga-id.mjs \"$AUTO_LAUNCH_GA_ID\""
   },
   "search": {

@@ -132,6 +132,7 @@ Write `$localPath/site.config.json` (overwrite if present) with this shape — s
   },
   "analytics": {
     "ga4": true,
+    "plausible": true,
     "injectCommand": "node scripts/set-ga-id.mjs \"$AUTO_LAUNCH_GA_ID\""
   },
   "search": {
@@ -157,7 +158,8 @@ Field mapping:
 | `repository.template` | source SSH URL (constant) |
 
 Notes:
-- Launch (`node dist/cli.js launch --config $localPath/site.config.json`) auto-creates D1, fills `wrangler.jsonc`, applies migrations, sets Worker secrets, attaches Workers custom domains, and upserts GA into D1. Do not rely on `wrangler domains add` (removed in Wrangler 4).
+- Launch (`node dist/cli.js launch --config $localPath/site.config.json`) auto-creates D1, fills `wrangler.jsonc`, applies migrations, sets Worker secrets, attaches Workers custom domains, and upserts GA + Plausible into D1. Do not rely on `wrangler domains add` (removed in Wrangler 4).
+- Plausible needs `PLAUSIBLE_API_TOKEN` (Sites API, Enterprise) in auto-launch-website `.env`. Stats/Events APIs are for querying or server-side tracking, not site provisioning.
 - After writing `site.config.json`, also write `$localPath/scripts/set-ga-id.mjs` if missing (same small script as other ShipAny launch sites) so `analytics.injectCommand` works.
 - The collected **邮箱** is for `/quick-start` (admin/support), not a field inside this JSON. Launch-time email routing still uses `SUPPORT_EMAIL_DESTINATION` from the environment.
 

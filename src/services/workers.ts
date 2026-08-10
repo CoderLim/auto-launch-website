@@ -128,12 +128,38 @@ export async function applyD1Migrations(projectDir: string, databaseName: string
   return { databaseName, applied: true };
 }
 
-export async function upsertGa4Config(projectDir: string, databaseName: string, measurementId: string) {
-  const sql = `INSERT INTO config (name, value) VALUES ('google_analytics_id', '${measurementId.replace(/'/g, "''")}') ON CONFLICT(name) DO UPDATE SET value=excluded.value;`;
+export async function upsertConfigValues(
+  projectDir: string,
+  databaseName: string,
+  entries: Record<string, string>,
+) {
+  const esc = (value: string) => value.replace(/'/g, "''");
+  const values = Object.entries(entries)
+    .map(([name, value]) => `('${esc(name)}', '${esc(value)}')`)
+    .join(', ');
+  const sql = `INSERT INTO config (name, value) VALUES ${values} ON CONFLICT(name) DO UPDATE SET value=excluded.value;`;
   await run(
     `npx wrangler d1 execute "${databaseName}" --remote --command=${JSON.stringify(sql)}`,
     projectDir,
     { CI: 'true' },
   );
+  return entries;
+}
+
+export async function upsertGa4Config(projectDir: string, databaseName: string, measurementId: string) {
+  await upsertConfigValues(projectDir, databaseName, { google_analytics_id: measurementId });
   return { measurementId, databaseName };
+}
+
+export async function upsertPlausibleConfig(
+  projectDir: string,
+  databaseName: string,
+  domain: string,
+  scriptSrc: string,
+) {
+  await upsertConfigValues(projectDir, databaseName, {
+    plausible_domain: domain,
+    plausible_src: scriptSrc,
+  });
+  return { domain, scriptSrc, databaseName };
 }

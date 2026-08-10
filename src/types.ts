@@ -8,7 +8,7 @@ export interface SiteConfig {
   registrar: { provider: RegistrarProvider };
   cloudflare?: { alwaysHttps?: boolean; redirectWwwToApex?: boolean };
   email?: { enabled?: boolean; aliases?: string[]; destinationEnv?: string };
-  analytics?: { ga4?: boolean; injectCommand?: string };
+  analytics?: { ga4?: boolean; plausible?: boolean; injectCommand?: string };
   search?: { gsc?: boolean; sitemapPath?: string };
   audit?: { buildCommand?: string; launchAuditCommand?: string };
 }
