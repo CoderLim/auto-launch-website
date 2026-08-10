@@ -8,6 +8,7 @@ import { GoogleProvider } from '../providers/google.js';
 import { provisionPlausibleSite } from '../providers/plausible.js';
 import { requiredEnv, AppError } from '../utils/errors.js';
 import { productionAudit } from '../services/audit.js';
+import { printManualFollowUps } from '../services/followups.js';
 import {
   prepareWorkersHosting,
   ensureWorkerSecrets,
@@ -221,5 +222,6 @@ export async function launch(config: SiteConfig, opts: { dryRun?: boolean } = {}
   }
 
   await step('production-audit', () => productionAudit(config.domain));
+  if (!opts.dryRun) printManualFollowUps(config, state);
   return state;
 }

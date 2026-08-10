@@ -15,7 +15,7 @@ Implemented:
 - Enable Cloudflare Email Routing and create aliases such as `support@domain`.
 - Deploy via `hosting.deployCommand` (ShipAny: `pnpm cf:deploy`).
 - Create GA4 property + web stream; for Workers, upsert `google_analytics_id` into D1 config (optional `analytics.injectCommand` still runs).
-- Create/reuse a Plausible site via Sites API and upsert `plausible_domain` + `plausible_src` into D1 (Enterprise Sites API key required).
+- Create/reuse a Plausible site via Sites API when `PLAUSIBLE_API_TOKEN` is set; otherwise inject the legacy script into D1 and print a post-launch reminder to add the site in the Plausible dashboard.
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
 - Persist step state to `.auto-launch-state.json` for safe retries.
 - Production checks for apex HTTPS, www redirect, sitemap and robots.txt (DoH + curl, with retries for edge cert provisioning).
