@@ -114,3 +114,30 @@ test('CloudflareProvider clears only address records before custom domains', asy
   assert.ok(calls.some((c) => c.method === 'PUT' && String(c.url).includes('/workers/domains')));
   globalThis.fetch = original;
 });
+
+test('CloudflareProvider enables a boolean zone setting', async () => {
+  const calls = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (input, init = {}) => {
+    calls.push({ url: String(input), method: init.method, body: init.body });
+    return new Response(JSON.stringify({ success: true, result: { id: 'crawler_hints', value: 'on' } }), {
+      status: 200,
+    });
+  };
+  process.env.CLOUDFLARE_API_TOKEN = 'tok';
+  try {
+    const { CloudflareProvider } = await import('../dist/providers/cloudflare.js');
+    const cf = new CloudflareProvider();
+    await cf.setZoneSetting('zone1', 'crawler_hints', true);
+  } finally {
+    globalThis.fetch = original;
+  }
+
+  assert.deepEqual(calls, [
+    {
+      url: 'https://api.cloudflare.com/client/v4/zones/zone1/settings/crawler_hints',
+      method: 'PATCH',
+      body: JSON.stringify({ value: 'on' }),
+    },
+  ]);
+});

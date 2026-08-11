@@ -34,8 +34,27 @@ test('workers dry run includes migrate/secrets and skips www-dns', async () => {
   assert.ok(logs.includes('[dry-run] hosting-migrate'));
   assert.ok(logs.includes('[dry-run] hosting-secrets'));
   assert.ok(logs.includes('[dry-run] hosting-domain'));
+  assert.ok(logs.includes('[dry-run] crawler-hints'));
   assert.ok(logs.includes('[dry-run] plausible'));
   assert.ok(logs.includes('[dry-run] plausible-inject'));
   assert.ok(!logs.includes('[dry-run] www-dns'));
   assert.ok(!logs.includes('[dry-run] ga4-redeploy'));
+});
+
+test('dry run skips crawler hints only when explicitly disabled', async () => {
+  const logs = [];
+  const original = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+  try {
+    await launch({
+      domain:'crawler-hints-disabled.example', site:{name:'Crawler Hints Disabled'},
+      repository:{owner:'x',name:'crawler-hints-disabled'},
+      hosting:{provider:'cloudflare',type:'workers',projectName:'crawler-hints-disabled',deployCommand:'pnpm cf:deploy'},
+      registrar:{provider:'spaceship'}, cloudflare:{crawlerHints:false},
+      email:{enabled:false}, analytics:{ga4:false, plausible:false}, search:{gsc:false}
+    }, {dryRun:true});
+  } finally {
+    console.log = original;
+  }
+  assert.ok(!logs.includes('[dry-run] crawler-hints'));
 });

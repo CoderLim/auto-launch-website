@@ -6,7 +6,7 @@ export interface SiteConfig {
   repository: { owner: string; name: string; visibility?: Visibility; template?: string };
   hosting: { provider: 'cloudflare'; type: 'pages' | 'workers'; projectName: string; productionBranch?: string; setupCommand?: string; deployCommand?: string; customDomainCommand?: string };
   registrar: { provider: RegistrarProvider };
-  cloudflare?: { alwaysHttps?: boolean; redirectWwwToApex?: boolean };
+  cloudflare?: { alwaysHttps?: boolean; redirectWwwToApex?: boolean; crawlerHints?: boolean };
   email?: { enabled?: boolean; aliases?: string[]; destinationEnv?: string };
   analytics?: { ga4?: boolean; plausible?: boolean; injectCommand?: string };
   search?: { gsc?: boolean; sitemapPath?: string };

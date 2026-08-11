@@ -47,7 +47,11 @@ export class CloudflareProvider {
   }
 
   async setAlwaysHttps(zoneId: string, enabled: boolean) {
-    return requestJson(`${this.base}/zones/${zoneId}/settings/always_use_https`, {
+    return this.setZoneSetting(zoneId, 'always_use_https', enabled);
+  }
+
+  async setZoneSetting(zoneId: string, setting: string, enabled: boolean) {
+    return requestJson(`${this.base}/zones/${zoneId}/settings/${setting}`, {
       method: 'PATCH',
       headers: this.headers(),
       body: JSON.stringify({ value: enabled ? 'on' : 'off' }),

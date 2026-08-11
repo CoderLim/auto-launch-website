@@ -131,6 +131,10 @@ export async function launch(config: SiteConfig, opts: { dryRun?: boolean } = {}
     await step('always-https', () => cf.setAlwaysHttps(zone!.id, true));
   }
 
+  if (config.cloudflare?.crawlerHints !== false) {
+    await step('crawler-hints', () => cf.setZoneSetting(zone!.id, 'crawler_hints', true));
+  }
+
   // Workers custom domains manage apex/www DNS; Pages still needs an explicit www CNAME.
   if (!isWorkers) {
     await step('www-dns', () => cf.upsertDns(zone!.id, 'CNAME', `www.${config.domain}`, config.domain, true));
