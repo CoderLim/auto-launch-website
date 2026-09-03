@@ -10,3 +10,14 @@ test('newsite skill validates origin and retries publication safely', async () =
   assert.doesNotMatch(text, /--confirm/);
   assert.equal(text.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
 });
+
+test('launch-site skill documents ShipAny hreflang audit', async () => {
+  const skill = await readFile('.claude/skills/launch-site/SKILL.md', 'utf8');
+  const note = await readFile('.claude/skills/launch-site/hreflang.md', 'utf8');
+  assert.match(skill, /hreflang/);
+  assert.match(skill, /hreflang\.md/);
+  assert.match(note, /__root\.tsx/);
+  assert.match(note, /localeHeadLinks|do not keep homepage hreflang in the root layout/i);
+  assert.equal(skill.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
+  assert.equal(note.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
+});

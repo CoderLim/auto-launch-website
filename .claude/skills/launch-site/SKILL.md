@@ -43,7 +43,20 @@ node dist/cli.js launch --config "<absolute-path-to-site.config.json>"
 - GA4 property + D1 `google_analytics_id`
 - Plausible D1 (`plausible_domain` + shared `PLAUSIBLE_SCRIPT_SRC`)
 - GSC verify + sitemap submit
-- Production audit
+- Production audit (HTTPS, www→apex, sitemap/robots, **hreflang**)
+
+## Production audit: hreflang
+
+ShipAny’s `__root.tsx` historically emits homepage `hreflang` on **every** page. Inner routes that also emit self-pointing en/zh then fail Ahrefs (“more than one page for same language”, “missing reciprocal / return-tag”). zh JSON-LD `url` often stays the English path.
+
+`production-audit` samples the homepage plus sitemap URLs and fails on:
+
+- the same `hreflang` mapping to two different hrefs (root layout leaking `/` + `/zh` onto an inner page)
+- an inner page whose en/zh tags point at the homepage instead of itself
+- a fetched pair with no return tag
+- JSON-LD `url` on a `/zh/...` page that is not a `/zh` URL
+
+Full pattern, curl recipe, and the site-repo fix: [hreflang.md](./hreflang.md). If audit fails, fix the **site** (do not keep homepage alternates in the root layout), then re-run launch.
 
 ## Manual follow-ups (printed at end)
 

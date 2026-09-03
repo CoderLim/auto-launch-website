@@ -18,7 +18,7 @@ Implemented:
 - Plausible: set `PLAUSIBLE_SCRIPT_SRC` (shared self-hosted script); launch writes `plausible_domain` per site into D1. Optional Enterprise `PLAUSIBLE_API_TOKEN` auto-provisions via Sites API.
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
 - Persist step state to `.auto-launch-state/<domain>.json` for safe retries across multiple sites.
-- Production checks for apex HTTPS, www redirect, sitemap and robots.txt (DoH + curl, with retries for edge cert provisioning).
+- Production checks for apex HTTPS, www redirect, sitemap, robots.txt, and a sampled hreflang/JSON-LD audit (DoH + curl, with retries for edge cert provisioning). See `.claude/skills/launch-site/hreflang.md`.
 - Dry run and status commands.
 
 Not implemented in this MVP:
