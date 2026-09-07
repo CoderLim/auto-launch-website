@@ -57,3 +57,36 @@ test('collectManualFollowUps skips Plausible when Sites API was used', () => {
   assert.deepEqual(items, []);
   delete process.env.PLAUSIBLE_API_TOKEN;
 });
+
+test('collectManualFollowUps includes payment when payments.enabled', () => {
+  const items = collectManualFollowUps(
+    {
+      domain: 'example.com',
+      site: { name: 'Example' },
+      repository: { owner: 'x', name: 'y' },
+      hosting: { provider: 'cloudflare', type: 'workers', projectName: 'y' },
+      registrar: { provider: 'spaceship' },
+      payments: { enabled: true },
+    },
+    { version: 1, domain: 'example.com', steps: {} },
+  );
+  assert.equal(items.length, 1);
+  assert.equal(items[0].id, 'payment-provider');
+  assert.match(formatManualFollowUps(items), /No payment provider configured/);
+  assert.match(formatManualFollowUps(items), /https:\/\/example\.com\/admin/);
+});
+
+test('collectManualFollowUps skips payment when payments.enabled is false', () => {
+  const items = collectManualFollowUps(
+    {
+      domain: 'example.com',
+      site: { name: 'Example' },
+      repository: { owner: 'x', name: 'y' },
+      hosting: { provider: 'cloudflare', type: 'workers', projectName: 'y' },
+      registrar: { provider: 'spaceship' },
+      payments: { enabled: false },
+    },
+    { version: 1, domain: 'example.com', steps: {} },
+  );
+  assert.deepEqual(items, []);
+});

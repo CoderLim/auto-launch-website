@@ -19,6 +19,7 @@ Implemented:
 - Create GSC domain verification TXT, verify ownership, add Search Console property and submit sitemap.
 - Persist step state to `.auto-launch-state/<domain>.json` for safe retries across multiple sites.
 - Production checks for apex HTTPS, www redirect, sitemap, robots.txt, and a sampled hreflang/JSON-LD audit (DoH + curl, with retries for edge cert provisioning). See `.claude/skills/launch-site/hreflang.md`.
+- Manual follow-up when `payments.enabled` is true: configure + smoke-test the payment provider after launch (not automated). See `.claude/skills/launch-site/payment.md`.
 - Dry run and status commands.
 
 Not implemented in this MVP:

@@ -11,6 +11,8 @@ export interface SiteConfig {
   analytics?: { ga4?: boolean; plausible?: boolean; injectCommand?: string };
   search?: { gsc?: boolean; sitemapPath?: string };
   audit?: { buildCommand?: string; launchAuditCommand?: string };
+  /** When true, launch/status print a manual follow-up to configure + smoke-test payment. */
+  payments?: { enabled?: boolean };
 }
 export interface LaunchState {
   version: 1;

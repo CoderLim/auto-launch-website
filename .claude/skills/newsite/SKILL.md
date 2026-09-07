@@ -150,10 +150,14 @@ Write `$localPath/site.config.json` (overwrite if present) with this shape — s
   "audit": {
     "buildCommand": "pnpm build",
     "launchAuditCommand": ""
+  },
+  "payments": {
+    "enabled": false
   }
 }
 ```
 
+If **功能描述** includes paid credits, checkout, subscriptions, 付费, or 积分购买, set `"payments": { "enabled": true }` instead of `false`. Launch does not seed payment providers — `/launch-site` must then run the [payment.md](../launch-site/payment.md) checklist.
 Field mapping:
 
 | Config path | Source |
@@ -186,7 +190,9 @@ App description / Features: <功能描述>
 
 4. **Skip re-asking** in quick-start Phase 0 for app name, domain, and description — they are already provided. Still allow quick-start to ask its own remaining questions (database, admin password, etc.).
 
-5. After handoff, do not go back to scaffolding in this repo unless the user asks.
+5. **Post-login redirect (required product rule):** after sign-in / sign-up, return users to the page they came from — never default to `/settings`. During / after quick-start, apply [post-login-redirect.md](./post-login-redirect.md): auth entry links must pass `?callbackUrl=` via `currentPathWithQuery`, and `resolveAfterAuthUrl` fallback must be `/`.
+
+6. After handoff, do not go back to scaffolding in this repo unless the user asks.
 
 ## Completion checklist
 
@@ -196,3 +202,5 @@ Before claiming done:
 - [ ] Local clone at `$localPath` with `origin` pointing at that repo
 - [ ] `site.config.json` written
 - [ ] `/quick-start` started (or completed) in `$localPath` with the collected arguments
+- [ ] Post-login redirect rule applied ([post-login-redirect.md](./post-login-redirect.md)) — login returns to prior page, not `/settings`
+- [ ] If the product has paid credits / checkout / subscriptions: `payments.enabled` is `true` in `site.config.json` (reminder for `/launch-site` + [payment.md](../launch-site/payment.md))

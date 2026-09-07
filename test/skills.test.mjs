@@ -21,3 +21,21 @@ test('launch-site skill documents ShipAny hreflang audit', async () => {
   assert.equal(skill.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
   assert.equal(note.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
 });
+
+test('launch-site skill documents post-launch payment check', async () => {
+  const skill = await readFile('.claude/skills/launch-site/SKILL.md', 'utf8');
+  const note = await readFile('.claude/skills/launch-site/payment.md', 'utf8');
+  assert.match(skill, /payment\.md/);
+  assert.match(skill, /No payment provider configured/);
+  assert.match(note, /waffo_enabled/);
+  assert.match(note, /default_payment_provider/);
+  assert.match(note, /smoke checkout/i);
+  assert.equal(note.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
+});
+
+test('newsite skill marks payments.enabled for paid products', async () => {
+  const text = await readFile('.claude/skills/newsite/SKILL.md', 'utf8');
+  assert.match(text, /"payments"\s*:\s*\{\s*"enabled"/);
+  assert.match(text, /payment\.md/);
+  assert.match(text, /积分购买|credits|checkout/i);
+});

@@ -61,6 +61,13 @@ Full pattern, curl recipe, and the site-repo fix: [hreflang.md](./hreflang.md). 
 ## Manual follow-ups (printed at end)
 
 - **Plausible self-hosted:** add the domain in `PLAUSIBLE_DASHBOARD_URL` (default https://app.pageview.app) — script + data-domain are already injected.
+- **Payment (required when the product sells credits / checkout / subscriptions):** launch does **not** seed payment providers. Before claiming launch done, run [payment.md](./payment.md): verify D1/`/admin` has the provider enabled (`waffo_*` + `default_payment_provider`, or Stripe/Creem equivalents), public config exposes it, and a live smoke checkout reaches the provider — not `No payment provider configured`.
+
+Set in `site.config.json` so CLI `launch` / `status` print this reminder:
+
+```json
+"payments": { "enabled": true }
+```
 
 ## Status
 

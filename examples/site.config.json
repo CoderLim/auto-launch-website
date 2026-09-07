@@ -41,5 +41,8 @@
   "audit": {
     "buildCommand": "pnpm build",
     "launchAuditCommand": ""
+  },
+  "payments": {
+    "enabled": false
   }
 }

@@ -30,6 +30,22 @@ export function collectManualFollowUps(config: SiteConfig, state: LaunchState): 
     }
   }
 
+  if (config.payments?.enabled) {
+    items.push({
+      id: 'payment-provider',
+      title: 'Payment — configure provider + smoke checkout',
+      url: `https://${config.domain}/admin`,
+      steps: [
+        'Launch does not seed payment keys — Admin → Settings → Payment (or D1 config) must enable a provider',
+        'Required for Waffo: waffo_enabled, default_payment_provider=waffo, merchant/store/private key, product_ids_mapping',
+        'Confirm https://<domain>/api/config/public shows the provider enabled',
+        'Exhaust free quota (or set D1 usage to the daily cap), open checkout, and verify redirect to the provider — not "No payment provider configured"',
+        'Register webhook https://<domain>/api/payment/notify/<provider> at the merchant dashboard',
+        'Checklist: .claude/skills/launch-site/payment.md in auto-launch-website',
+      ],
+    });
+  }
+
   return items;
 }
 
