@@ -16,8 +16,11 @@ test('launch-site skill documents ShipAny hreflang audit', async () => {
   const note = await readFile('.claude/skills/launch-site/hreflang.md', 'utf8');
   assert.match(skill, /hreflang/);
   assert.match(skill, /hreflang\.md/);
+  assert.match(skill, /one sitemap URL per locale/);
   assert.match(note, /__root\.tsx/);
   assert.match(note, /localeHeadLinks|do not keep homepage hreflang in the root layout/i);
+  assert.match(note, /one `<url>` per locale/i);
+  assert.match(note, /auditSitemapLocaleEntries/);
   assert.equal(skill.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
   assert.equal(note.split(/\r?\n/).some(line => /[ \t]+$/.test(line)), false);
 });

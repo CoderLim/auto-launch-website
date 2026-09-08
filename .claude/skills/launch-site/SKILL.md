@@ -51,12 +51,13 @@ ShipAny’s `__root.tsx` historically emits homepage `hreflang` on **every** pag
 
 `production-audit` samples the homepage plus sitemap URLs and fails on:
 
+- sitemap `xhtml:link` hreflang targets that lack their own `<loc>` (must emit **one sitemap URL per locale**)
 - the same `hreflang` mapping to two different hrefs (root layout leaking `/` + `/zh` onto an inner page)
 - an inner page whose en/zh tags point at the homepage instead of itself
 - a fetched pair with no return tag
 - JSON-LD `url` on a `/zh/...` page that is not a `/zh` URL
 
-Full pattern, curl recipe, and the site-repo fix: [hreflang.md](./hreflang.md). If audit fails, fix the **site** (do not keep homepage alternates in the root layout), then re-run launch.
+Full pattern, curl recipe, and the site-repo fix: [hreflang.md](./hreflang.md). If audit fails, fix the **site** (do not keep homepage alternates in the root layout; sitemap must list each locale as its own `<loc>`), then re-run launch.
 
 ## Manual follow-ups (printed at end)
 

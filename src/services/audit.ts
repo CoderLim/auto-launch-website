@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import {
   auditPageHreflang,
   auditReciprocalHreflang,
+  auditSitemapLocaleEntries,
   isLocaleHome,
   normalizeHref,
   parseHreflangLinks,
@@ -79,6 +80,7 @@ export function sampleHreflangUrls(domain: string, locs: string[]): string[] {
 
 async function hreflangAudit(domain: string, ip: string) {
   const sitemapXml = await curlGet(`https://${domain}/sitemap.xml`, domain, ip);
+  const issues = [...auditSitemapLocaleEntries(sitemapXml)];
   const urls = sampleHreflangUrls(domain, sitemapLocs(sitemapXml));
   const pages: Array<{ url: string; html: string }> = [];
   for (const url of urls) {
@@ -86,7 +88,7 @@ async function hreflangAudit(domain: string, ip: string) {
     if (!html.includes('<html') && !html.includes('<link')) continue;
     pages.push({ url, html });
   }
-  const issues = pages.flatMap((page) => auditPageHreflang(page.url, page.html));
+  issues.push(...pages.flatMap((page) => auditPageHreflang(page.url, page.html)));
   issues.push(
     ...auditReciprocalHreflang(
       pages.map((page) => ({ url: page.url, links: parseHreflangLinks(page.html) })),

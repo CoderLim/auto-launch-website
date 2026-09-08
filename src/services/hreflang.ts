@@ -18,7 +18,8 @@ function attr(tag: string, name: string): string | undefined {
 
 export function parseHreflangLinks(html: string): HreflangLink[] {
   const links: HreflangLink[] = [];
-  const re = /<link\b[^>]*>/gi;
+  // HTML <link> and sitemap <xhtml:link> (or any namespaced *:link).
+  const re = /<(?:[\w.-]+:)?link\b[^>]*>/gi;
   let match: RegExpExecArray | null;
   while ((match = re.exec(html.replace(/\0/g, '')))) {
     const tag = match[0];
@@ -163,4 +164,34 @@ export function sitemapLocs(xml: string): string[] {
   return [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi)]
     .map((match) => match[1]?.trim())
     .filter((loc): loc is string => Boolean(loc));
+}
+
+/**
+ * Google's recommended pattern: one <url>/<loc> per localized URL, each carrying
+ * the full reciprocal xhtml:link hreflang cluster. Fail if sitemap only lists the
+ * base-locale loc while declaring other locales via xhtml:link (ShipAny old bug).
+ */
+export function auditSitemapLocaleEntries(xml: string): string[] {
+  const issues: string[] = [];
+  const locs = new Set(sitemapLocs(xml).map(normalizeHref));
+  const urlBlocks = [...xml.matchAll(/<url\b[^>]*>[\s\S]*?<\/url>/gi)].map(
+    (match) => match[0],
+  );
+
+  for (const block of urlBlocks) {
+    const loc = block.match(/<loc>\s*([^<]+?)\s*<\/loc>/i)?.[1]?.trim();
+    if (!loc) continue;
+    const links = parseHreflangLinks(block);
+    for (const link of links) {
+      if (link.lang === 'x-default') continue;
+      const href = normalizeHref(link.href);
+      if (!locs.has(href)) {
+        issues.push(
+          `sitemap: hreflang=${link.lang} → ${link.href} is declared under <loc>${loc} but has no own <loc> entry — emit one sitemap URL per locale`,
+        );
+      }
+    }
+  }
+
+  return [...new Set(issues)];
 }

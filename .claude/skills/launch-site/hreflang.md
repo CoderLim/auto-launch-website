@@ -46,11 +46,40 @@ Fail if an inner page still lists homepage `/` and `/zh`, if the same `hreflang`
 
 `production-audit` runs a subset of this (home + sitemap sample). If it fails, fix the site then re-run launch.
 
+## Sitemap: one `<url>` per locale
+
+Caught after ShipAny only listed the **base-locale** `<loc>` while stuffing zh (and other) URLs into `xhtml:link` alternates. Crawlers then under-discover `/zh/...` pages.
+
+**Required pattern** (Google’s reciprocal cluster recommendation):
+
+```xml
+<url>
+  <loc>https://example.com/pricing</loc>
+  <xhtml:link rel="alternate" hreflang="en" href="https://example.com/pricing" />
+  <xhtml:link rel="alternate" hreflang="zh" href="https://example.com/zh/pricing" />
+</url>
+<url>
+  <loc>https://example.com/zh/pricing</loc>
+  <xhtml:link rel="alternate" hreflang="en" href="https://example.com/pricing" />
+  <xhtml:link rel="alternate" hreflang="zh" href="https://example.com/zh/pricing" />
+</url>
+```
+
+**Fail if** any `xhtml:link` `hreflang` (except `x-default`) points at a URL that has no own `<loc>` entry.
+
+```bash
+curl -sL "https://<domain>/sitemap.xml" | rg -n '<loc>|<xhtml:link'
+# Every hreflang href (en/zh/…) must also appear as a <loc>
+```
+
+`production-audit` runs `auditSitemapLocaleEntries` on the live sitemap before the HTML sample.
+
 ## How to fix in the site repo
 
 1. Remove global homepage `alternate` links from `__root.tsx`. Root `head()` keeps icons / charset only.
 2. Each public route (or a helper like `localeHeadLinks(path, locale)`) emits **its own** canonical + en/zh + `x-default`.
 3. Localize JSON-LD / `og:url` with `localizeUrl` (or `localePageUrl`) using the active locale.
 4. Either ship a real zh page for every `hreflang=zh` URL, or do not declare that language.
+5. In `sitemap.xml` (e.g. `src/routes/sitemap[.]xml.ts`), emit **one `<url>` per locale** for each path; each entry repeats the full reciprocal `xhtml:link` cluster. Do not list only `baseLocale` as `<loc>`.
 
 Do **not** “fix” Ahrefs by deleting zh from inner pages that already have Chinese copy.

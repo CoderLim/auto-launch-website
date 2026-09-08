@@ -4,6 +4,7 @@ import { sampleHreflangUrls } from '../dist/services/audit.js';
 import {
   auditPageHreflang,
   auditReciprocalHreflang,
+  auditSitemapLocaleEntries,
   parseHreflangLinks,
   parseJsonLdUrls,
   sitemapLocs,
@@ -97,6 +98,37 @@ test('samples home plus inner en/zh pairs from sitemap', () => {
   assert.ok(sample.includes('https://example.com/zh'));
   assert.ok(sample.includes('https://example.com/blog'));
   assert.ok(sample.includes('https://example.com/zh/blog'));
+});
+
+test('flags sitemap that only lists base-locale loc with xhtml alternates', () => {
+  const bad = `<?xml version="1.0"?>
+    <urlset xmlns:xhtml="http://www.w3.org/1999/xhtml">
+      <url>
+        <loc>https://example.com/pricing</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://example.com/pricing" />
+        <xhtml:link rel="alternate" hreflang="zh" href="https://example.com/zh/pricing" />
+      </url>
+    </urlset>`;
+  const issues = auditSitemapLocaleEntries(bad);
+  assert.ok(issues.some((issue) => issue.includes('no own <loc> entry')));
+  assert.ok(issues.some((issue) => issue.includes('one sitemap URL per locale')));
+});
+
+test('accepts one sitemap url entry per locale with reciprocal cluster', () => {
+  const good = `<?xml version="1.0"?>
+    <urlset xmlns:xhtml="http://www.w3.org/1999/xhtml">
+      <url>
+        <loc>https://example.com/pricing</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://example.com/pricing" />
+        <xhtml:link rel="alternate" hreflang="zh" href="https://example.com/zh/pricing" />
+      </url>
+      <url>
+        <loc>https://example.com/zh/pricing</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://example.com/pricing" />
+        <xhtml:link rel="alternate" hreflang="zh" href="https://example.com/zh/pricing" />
+      </url>
+    </urlset>`;
+  assert.deepEqual(auditSitemapLocaleEntries(good), []);
 });
 
 test('parses JSON-LD urls including nested graphs', () => {
