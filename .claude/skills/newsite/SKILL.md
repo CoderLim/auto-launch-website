@@ -18,6 +18,9 @@ Bootstrap a new website from the ShipAny TanStack source repo, then continue wit
 | Source repo | `git@github.com:shipany-ai/shipany-tanstack.git` |
 | Projects root | `~/Projects` |
 | Visibility | `public` |
+| GitHub owner | `CoderLim` |
+
+**GitHub owner rule:** every new site repository **must** be created under `CoderLim` — never under `limbuilder` or any other logged-in `gh` account. Before any `gh` mutation, switch the active account and lock `owner` to that constant.
 
 ## Phase 1: Collect inputs (AskUserQuestion)
 
@@ -52,7 +55,14 @@ repository.name = siteName
 Validate `repository.name`: must match `^[a-z0-9._-]+$`, and must not be `.` or `..`.
 
 ```bash
-owner="$(gh api user -q .login)"
+# Always CoderLim — do NOT use `gh api user -q .login` (active account may be limbuilder / other).
+gh auth switch --user CoderLim
+owner="CoderLim"
+active="$(gh api user -q .login)"
+if [ "$active" != "CoderLim" ]; then
+  echo "Active gh user is '$active', expected CoderLim. Stop." >&2
+  exit 1
+fi
 localPath="$HOME/Projects/${repository_name}"
 origin="git@github.com:${owner}/${repository_name}.git"
 source="git@github.com:shipany-ai/shipany-tanstack.git"
@@ -114,7 +124,7 @@ Write `$localPath/site.config.json` (overwrite if present) with this shape — s
     "canonicalUrl": "https://<域名>"
   },
   "repository": {
-    "owner": "<owner>",
+    "owner": "CoderLim",
     "name": "<repository.name>",
     "visibility": "public",
     "template": "git@github.com:shipany-ai/shipany-tanstack.git"
@@ -165,7 +175,7 @@ Field mapping:
 | `domain` | 域名 |
 | `site.name` | 网站名 |
 | `site.canonicalUrl` | `https://` + 域名 |
-| `repository.owner` | `gh api user -q .login` |
+| `repository.owner` | constant `CoderLim` (never the active `gh` login if it differs) |
 | `repository.name` / `hosting.projectName` | derived slug |
 | `repository.template` | source SSH URL (constant) |
 
@@ -198,8 +208,8 @@ App description / Features: <功能描述>
 
 Before claiming done:
 
-- [ ] GitHub repo exists at `https://github.com/<owner>/<repository.name>`
-- [ ] Local clone at `$localPath` with `origin` pointing at that repo
+- [ ] GitHub repo exists at `https://github.com/CoderLim/<repository.name>` (not limbuilder or another account)
+- [ ] Local clone at `$localPath` with `origin` pointing at that `CoderLim` repo
 - [ ] `site.config.json` written
 - [ ] `/quick-start` started (or completed) in `$localPath` with the collected arguments
 - [ ] Post-login redirect rule applied ([post-login-redirect.md](./post-login-redirect.md)) — login returns to prior page, not `/settings`
